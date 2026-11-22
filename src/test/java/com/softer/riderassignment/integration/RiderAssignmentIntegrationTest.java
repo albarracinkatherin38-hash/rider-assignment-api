@@ -143,4 +143,25 @@ class RiderAssignmentIntegrationTest {
         assertEquals(999L, response.getBody().getRiderId());
         assertEquals(AssignmentStatus.ACCEPTED, response.getBody().getStatus());
     }
+
+    @Test
+    @Order(6)
+    @DisplayName("DELETE /api/assignments/{id} elimina la asignación")
+    @Sql(statements = "INSERT INTO rider_assignments (id, delivery_id, rider_id, status, assigned_at) "
+            + "VALUES (1, 7001, 301, 'ASSIGNED', '2026-11-22 10:00:00')",
+            executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(statements = "DELETE FROM rider_assignments",
+            executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    void shouldDeleteAssignment() {
+        assertEquals(1L, repository.count());
+
+        ResponseEntity<Void> response = restTemplate.exchange(
+                "/api/assignments/1",
+                HttpMethod.DELETE,
+                null,
+                Void.class);
+
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        assertEquals(0L, repository.count());
+    }
 }
