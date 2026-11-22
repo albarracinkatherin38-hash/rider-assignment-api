@@ -87,4 +87,24 @@ class RiderAssignmentIntegrationTest {
         assertEquals(301L, response.getBody()[0].getRiderId());
         assertEquals(AssignmentStatus.ASSIGNED, response.getBody()[0].getStatus());
     }
+
+    @Test
+    @Order(4)
+    @DisplayName("GET /api/assignments/{id} retorna la asignación solicitada")
+    @Sql(statements = "INSERT INTO rider_assignments (id, delivery_id, rider_id, status, assigned_at) "
+            + "VALUES (1, 7001, 301, 'ASSIGNED', '2026-11-22 10:00:00')",
+            executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(statements = "DELETE FROM rider_assignments",
+            executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    void shouldReturnAssignmentById() {
+        ResponseEntity<RiderAssignment> response =
+                restTemplate.getForEntity("/api/assignments/1", RiderAssignment.class);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(1L, response.getBody().getId());
+        assertEquals(7001L, response.getBody().getDeliveryId());
+        assertEquals(301L, response.getBody().getRiderId());
+        assertEquals(AssignmentStatus.ASSIGNED, response.getBody().getStatus());
+    }
 }
