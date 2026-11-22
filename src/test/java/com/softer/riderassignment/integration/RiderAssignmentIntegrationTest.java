@@ -55,4 +55,16 @@ class RiderAssignmentIntegrationTest {
         assertEquals(AssignmentStatus.ASSIGNED, response.getBody().getStatus());
         assertEquals(1L, repository.count());
     }
+
+    @Test
+    @Order(2)
+    @DisplayName("GET /api/assignments retorna lista vacía cuando no hay asignaciones")
+    void shouldReturnEmptyListWhenThereAreNoAssignments() {
+        ResponseEntity<RiderAssignment[]> response =
+                restTemplate.getForEntity("/api/assignments", RiderAssignment[].class);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(0, response.getBody().length);
+    }
 }
