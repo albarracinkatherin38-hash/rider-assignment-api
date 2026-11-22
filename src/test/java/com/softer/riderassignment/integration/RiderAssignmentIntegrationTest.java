@@ -11,7 +11,11 @@ import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
@@ -106,5 +110,37 @@ class RiderAssignmentIntegrationTest {
         assertEquals(7001L, response.getBody().getDeliveryId());
         assertEquals(301L, response.getBody().getRiderId());
         assertEquals(AssignmentStatus.ASSIGNED, response.getBody().getStatus());
+    }
+
+    @Test
+    @Order(5)
+    @DisplayName("PUT /api/assignments/{id} actualiza la asignación")
+    @Sql(statements = "INSERT INTO rider_assignments (id, delivery_id, rider_id, status, assigned_at) "
+            + "VALUES (1, 7001, 301, 'ASSIGNED', '2026-11-22 10:00:00')",
+            executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(statements = "DELETE FROM rider_assignments",
+            executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    void shouldUpdateAssignment() {
+        Map<String, Object> request = Map.of(
+                "deliveryId", 7001,
+                "riderId", 999,
+                "status", "ACCEPTED"
+        );
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        ResponseEntity<RiderAssignment> response = restTemplate.exchange(
+                "/api/assignments/1",
+                HttpMethod.PUT,
+                new HttpEntity<>(request, headers),
+                RiderAssignment.class);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(1L, response.getBody().getId());
+        assertEquals(7001L, response.getBody().getDeliveryId());
+        assertEquals(999L, response.getBody().getRiderId());
+        assertEquals(AssignmentStatus.ACCEPTED, response.getBody().getStatus());
     }
 }
